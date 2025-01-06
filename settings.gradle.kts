@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "AlphaEcosystemTestTask"
 include(":app")
- 
+include(":data")
+include(":data:bininfo")
