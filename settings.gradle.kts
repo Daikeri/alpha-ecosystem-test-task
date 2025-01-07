@@ -23,3 +23,5 @@ rootProject.name = "AlphaEcosystemTestTask"
 include(":app")
 include(":data")
 include(":data:bininfo")
+include(":feature")
+include(":feature:bincheck")

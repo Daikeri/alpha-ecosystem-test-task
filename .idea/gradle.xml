@@ -11,6 +11,8 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/data/bininfo" />
+            <option value="$PROJECT_DIR$/feature" />
+            <option value="$PROJECT_DIR$/feature/bincheck" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
