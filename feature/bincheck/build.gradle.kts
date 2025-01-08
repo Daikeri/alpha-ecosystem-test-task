@@ -56,11 +56,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.ui:ui")
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(project(":data:bininfo"))
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation ("androidx.compose.ui:ui-text")
+
 }
 
 kapt {
