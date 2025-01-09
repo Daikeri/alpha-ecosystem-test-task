@@ -1,36 +1,39 @@
 package com.example.bincheck.ui
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -38,10 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -58,7 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bincheck.viewmodel.BinCheckVM
@@ -74,31 +75,100 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     var shoBinInfo by remember {
         mutableStateOf(false)
     }
-    var titleAlpha by remember {
-        mutableStateOf(1f)
+
+    val transition = updateTransition(targetState = shoBinInfo, label = "global animation")
+
+    val startColorGradient1 = Color(0xFFDCDCDD)
+    val startColorGradient2 = Color(0xFFC5C3C6)
+    val startColorGradient3 = Color(0xFF899097)
+    val startColorGradient4 =  Color(0xFF4C5C68)
+
+    val altColorGradient11 = Color(0xFF737DFE)
+    val altColorGradient22 = Color(0xFFFFCAC9)
+    /*
+        val altColorGradient11 = Color(0xFFC6FFDD)
+    val altColorGradient22 = Color(0xFFFBD7B6)
+    val altColorGradient33 = Color(0xFFF7797D)
+     */
+
+    /*
+     val altColorGradient11 = Color(0xFF233A4E)
+    val altColorGradient22 = Color(0xFF9C6DB0)
+     */
+
+    /*
+    val altColorGradient11 = Color(0xFF737DFE)
+    val altColorGradient22 = Color(0xFFFFCAC9)
+     */
+
+    val customEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+    val duration = 2000
+    val gradientDelay = 300
+
+    val stateColorGradient1 by transition.animateColor(
+        label = "",
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+    ) { state ->
+        if (!state) startColorGradient1 else altColorGradient11
     }
-    val animatedTitleAlpha = remember {
-        Animatable(titleAlpha)
+    val stateColorGradient2 by transition.animateColor(
+        label = "",
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+    ) { state ->
+        if (!state) startColorGradient2 else altColorGradient11
     }
-    val paddingCardSurface by remember {
-        mutableStateOf(0f)
+    val stateColorGradient3 by transition.animateColor(
+        label = "",
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+    ) { state ->
+        if (!state) startColorGradient3 else altColorGradient22
     }
-    val animatedPaddingCardSurface = remember {
-        Animatable(paddingCardSurface)
+    val stateColorGradient4 by transition.animateColor(
+        label = "",
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+    ) { state ->
+        if (!state) startColorGradient4 else altColorGradient22
     }
-    LaunchedEffect(key1 = shoBinInfo) {
-        if (shoBinInfo) {
-            animatedTitleAlpha.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 1000, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f))
-            )
-            animatedPaddingCardSurface
-                .animateTo(
-                    targetValue = 600f,
-                    animationSpec = tween(durationMillis = 850, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f))
+    val elevationState by transition.animateDp(
+        label = "",
+        transitionSpec = { tween(delayMillis = 1200,durationMillis = 800, easing = customEasing) }
+    ) { state ->
+        if (!state) 0.dp else 20.dp
+    }
+    val offsetCardSurfaceState by transition.animateFloat(
+        label = "",
+        transitionSpec = { tween(delayMillis = 0,durationMillis = 800, easing = customEasing) }
+    ) { state ->
+        if (!state) 0f else 300f
+    }
+    val alphaTitleState by transition.animateFloat(
+        label = "",
+        transitionSpec = {tween(delayMillis = 0,durationMillis = 800, easing = customEasing) }
+    ) { state ->
+        if (!state) 1f else 0f
+    }
+    val compositionGradient by remember {
+        derivedStateOf {
+            if (shoBinInfo) {
+                Brush.linearGradient(
+                    colors = listOf(
+                        stateColorGradient1,
+                        stateColorGradient4
+                    )
                 )
+            } else {
+                Brush.linearGradient(
+                    colors = listOf(
+                        stateColorGradient1,
+                        stateColorGradient2,
+                        stateColorGradient3,
+                        stateColorGradient4
+                    )
+                )
+            }
         }
     }
+
 
     val onInputValueChange = { inputValue: String -> inputFieldState = inputValue}
     val backgroundSurfaceColor = Color(0xFFFFFFFF)
@@ -120,24 +190,55 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
        Box(
            modifier = Modifier
                .fillMaxSize()
-               .padding(bottom = animatedPaddingCardSurface.value.dp)
-
        ) {
            Title(
-               alphaState = animatedTitleAlpha,
+               alphaState = alphaTitleState,
                color = titleColor,
                modifier = Modifier.align(Alignment.TopStart)
            )
 
            CardSurface(
-               offsetState = animatedPaddingCardSurface,
-               brush = cardSurfaceColor,
+               brush = compositionGradient,
+               elevationState = elevationState,
                inputFieldState = inputFieldState,
+               offsetState = offsetCardSurfaceState,
                onDone = { shoBinInfo = !shoBinInfo},
                onInputValueChange = onInputValueChange,
                modifier = Modifier
                    .align(Alignment.Center)
            )
+
+           transition.AnimatedVisibility(
+               modifier = Modifier.align(Alignment.BottomCenter),
+               visible = { it },
+               enter = slideInVertically(
+                   animationSpec = tween(
+                       durationMillis = 500,
+                       delayMillis = 1050,
+                       easing = customEasing
+                   ),
+                   initialOffsetY = { fullHeight -> fullHeight } // Начальная позиция: ниже экрана
+               ) + fadeIn(
+                   animationSpec = tween(
+                       durationMillis = 500,
+                       easing = customEasing
+                   ),
+               ), // Плавное появление
+               exit = slideOutVertically(
+                   animationSpec = tween(
+                       durationMillis = 500,
+                       easing = customEasing
+                   ),
+                   targetOffsetY = { fullHeight -> fullHeight } // Конечная позиция: ниже экрана
+               ) + fadeOut(
+                   animationSpec = tween(
+                       durationMillis = 500,
+                       easing = customEasing
+                   ),
+               ) // Плавное исчезновение
+           ) {
+               BinInfoSurface()
+           }
        }
     }
 }
@@ -145,7 +246,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
 
 @Composable
 fun Title(
-    alphaState: Animatable<Float, AnimationVector1D>,
+    alphaState: Float,
     color: Color,
     modifier: Modifier
 ) {
@@ -181,16 +282,17 @@ fun Title(
             .padding(top = 97.dp, start = 20.dp, end = 20.dp)
             .then(modifier)
             .graphicsLayer {
-                alpha = alphaState.value
+                alpha = alphaState
             }
     )
 }
 
 @Composable
 fun CardSurface(
-    offsetState: Animatable<Float, AnimationVector1D>,
     brush: Brush,
+    elevationState: Dp,
     inputFieldState: String,
+    offsetState: Float,
     onInputValueChange: (String) -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier
@@ -198,51 +300,56 @@ fun CardSurface(
     var downloadIndicatorIsVisible by remember {
         mutableStateOf(false)
     }
-
-    Box(
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = elevationState,
         modifier = Modifier
+            .then(modifier)
             .height(230.dp)
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(brush = brush)
-            //.padding(offsetState.value.dp)
-            //.offset(y = offsetState.value.dp)
-            .then(modifier)
+            .padding(start = 20.dp, end = 20.dp,)
+            .offset(y = -(offsetState).dp)
     ) {
-        Image(
-            imageVector =
-            ImageVector.vectorResource(id = R.drawable.google_chio_silver),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
+        Box(
             modifier = Modifier
-                .size(95.dp)
-                .padding(start = 15.dp, bottom = 25.dp)
-                .align(Alignment.CenterStart)
-        )
-
-        InputFieldCardSurface(
-            state = inputFieldState,
-            onValueChange = onInputValueChange,
-            onDone = {
-                downloadIndicatorIsVisible = !downloadIndicatorIsVisible
-                onDone()
-            },
-            modifier = Modifier
-                .padding(start = 10.dp, top = 55.dp)
-                .align(Alignment.CenterStart)
-        )
-
-        if (downloadIndicatorIsVisible) {
-            LinearProgressIndicator(
-                color = Color(0xFF7096D1),
-                trackColor = Color(0xFFBAD6EB),
+                .fillMaxSize()
+                .background(brush = brush)
+        ) {
+            Image(
+                imageVector =
+                ImageVector.vectorResource(id = R.drawable.google_chio_silver),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
+                    .size(95.dp)
+                    .padding(start = 15.dp, bottom = 25.dp)
+                    .align(Alignment.CenterStart)
             )
+
+            InputFieldCardSurface(
+                state = inputFieldState,
+                onValueChange = onInputValueChange,
+                onDone = {
+                    downloadIndicatorIsVisible = !downloadIndicatorIsVisible
+                    onDone()
+                },
+                modifier = Modifier
+                    .padding(start = 10.dp, top = 55.dp)
+                    .align(Alignment.CenterStart)
+            )
+
+            if (downloadIndicatorIsVisible) {
+                LinearProgressIndicator(
+                    color = Color(0xFF7096D1),
+                    trackColor = Color(0xFFBAD6EB),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
+
 }
 
 @Composable
@@ -356,3 +463,20 @@ Color(0xFF899097),
 Color(0xFFC5C3C6),
 Color(0xFFDCDCDD),
  */
+
+@Composable
+fun BinInfoSurface(
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFC5C3C6),
+        modifier = Modifier
+            .height(575.dp)
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+            .then(modifier)
+
+    ) {
+    }
+}
