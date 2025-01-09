@@ -7,15 +7,15 @@ import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
@@ -102,38 +104,38 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
      */
 
     val customEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-    val duration = 2000
+    val gradientDuration = 2000
     val gradientDelay = 300
 
     val stateColorGradient1 by transition.animateColor(
         label = "",
-        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = gradientDuration, easing = customEasing) }
     ) { state ->
         if (!state) startColorGradient1 else altColorGradient11
     }
     val stateColorGradient2 by transition.animateColor(
         label = "",
-        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = gradientDuration, easing = customEasing) }
     ) { state ->
         if (!state) startColorGradient2 else altColorGradient11
     }
     val stateColorGradient3 by transition.animateColor(
         label = "",
-        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = gradientDuration, easing = customEasing) }
     ) { state ->
         if (!state) startColorGradient3 else altColorGradient22
     }
     val stateColorGradient4 by transition.animateColor(
         label = "",
-        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = duration, easing = customEasing) }
+        transitionSpec = { tween(delayMillis = gradientDelay,durationMillis = gradientDuration, easing = customEasing) }
     ) { state ->
         if (!state) startColorGradient4 else altColorGradient22
     }
     val elevationState by transition.animateDp(
         label = "",
-        transitionSpec = { tween(delayMillis = 1200,durationMillis = 800, easing = customEasing) }
+        transitionSpec = { tween(delayMillis = 1600,durationMillis = 800, easing = customEasing) }
     ) { state ->
-        if (!state) 0.dp else 20.dp
+        if (!state) 0.dp else 30.dp
     }
     val offsetCardSurfaceState by transition.animateFloat(
         label = "",
@@ -143,7 +145,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     }
     val alphaTitleState by transition.animateFloat(
         label = "",
-        transitionSpec = {tween(delayMillis = 0,durationMillis = 800, easing = customEasing) }
+        transitionSpec = {tween(delayMillis = 0,durationMillis = 600, easing = customEasing) }
     ) { state ->
         if (!state) 1f else 0f
     }
@@ -173,14 +175,6 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     val onInputValueChange = { inputValue: String -> inputFieldState = inputValue}
     val backgroundSurfaceColor = Color(0xFFFFFFFF)
     val titleColor = Color(0xFF36454F)
-    val cardSurfaceColor = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFDCDCDD),
-            Color(0xFFC5C3C6),
-            Color(0xFF899097),
-            Color(0xFF4C5C68),
-        )
-    )
 
     Surface(
         modifier = Modifier
@@ -209,7 +203,9 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
            )
 
            transition.AnimatedVisibility(
-               modifier = Modifier.align(Alignment.BottomCenter),
+               modifier = Modifier
+                   .align(Alignment.BottomCenter)
+               ,
                visible = { it },
                enter = slideInVertically(
                    animationSpec = tween(
@@ -217,7 +213,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                        delayMillis = 1050,
                        easing = customEasing
                    ),
-                   initialOffsetY = { fullHeight -> fullHeight } // Начальная позиция: ниже экрана
+                   initialOffsetY = { fullHeight -> fullHeight }
                ) + fadeIn(
                    animationSpec = tween(
                        durationMillis = 500,
@@ -229,7 +225,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                        durationMillis = 500,
                        easing = customEasing
                    ),
-                   targetOffsetY = { fullHeight -> fullHeight } // Конечная позиция: ниже экрана
+                   targetOffsetY = { fullHeight -> fullHeight }
                ) + fadeOut(
                    animationSpec = tween(
                        durationMillis = 500,
@@ -237,7 +233,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                    ),
                ) // Плавное исчезновение
            ) {
-               BinInfoSurface()
+               InfoDetailSurface()
            }
        }
     }
@@ -426,6 +422,117 @@ fun InputFieldCardSurface(
     }
 }
 
+@Composable
+fun InfoDetailSurface(
+    modifier: Modifier = Modifier
+) {
+    val fontFamily = FontFamily(Font(R.font.inter_18pt_regular))
+    val headFontSize = 21.sp
+    val contentFontSize = 19.sp
+    val headColor = Color(0xFF36454F)
+    val contentColor = Color(0xFF4C5C68)
+
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFEEEEEE),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp, bottom = 275.dp)
+            .then(modifier)
+
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,//Arrangement.spacedBy(40.dp, Alignment.CenterHorizontally) ,
+            modifier = Modifier
+                .padding(horizontal = 25.dp, vertical = 15.dp)
+        ) {
+            val contentForBinaryType = listOf(
+                buildAnnotatedString {
+                    append("Debit / ")
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append("Credit")
+                    }
+                },
+                buildAnnotatedString {
+                    append("Yes / ")
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    ) {
+                        append("No")
+                    }
+                },
+            )
+            val headMono = listOf(
+                "Scheme / network",
+                "Brand",
+                "Country",
+                "Bank"
+            )
+            val headBinary = listOf(
+                "Type",
+                "Prepaid",
+            )
+            Column {
+                headMono.forEachIndexed { index, s ->
+                    Column(
+                        modifier.padding(
+                            bottom = if (index != headMono.size-1 ) 15.dp else 0.dp
+                        )
+                    ) {
+                        Text(
+                            text = s,
+                            fontSize = headFontSize,
+                            color = headColor,
+                            fontFamily = fontFamily,
+                            modifier = Modifier.padding(
+                                bottom = 10.dp,
+                            )
+                        )
+                        Text(
+                            text = "Some content",
+                            fontSize = contentFontSize,
+                            color = contentColor,
+                            fontFamily = fontFamily
+                        )
+                    }
+                }
+            }
+            Column {
+                headBinary.forEachIndexed { index, s ->
+                    Column(
+                        modifier.padding(
+                            bottom = if (index != headBinary.size-1 ) 15.dp else 0.dp
+                        )
+                    ) {
+                        Text(
+                            text = s,
+                            fontSize = headFontSize,
+                            color = headColor,
+                            fontFamily = fontFamily,
+                            modifier = Modifier.padding(
+                                bottom = 10.dp,
+                            )
+                        )
+                        Text(
+                            text = contentForBinaryType[index],
+                            fontSize = contentFontSize,
+                            color = contentColor,
+                            fontFamily = fontFamily
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 /*
 Удачная рандом палетка
@@ -464,19 +571,14 @@ Color(0xFFC5C3C6),
 Color(0xFFDCDCDD),
  */
 
-@Composable
-fun BinInfoSurface(
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFC5C3C6),
-        modifier = Modifier
-            .height(575.dp)
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
-            .then(modifier)
+/*
+val cardSurfaceColor = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFDCDCDD),
+            Color(0xFFC5C3C6),
+            Color(0xFF899097),
+            Color(0xFF4C5C68),
+        )
+    )
+ */
 
-    ) {
-    }
-}
