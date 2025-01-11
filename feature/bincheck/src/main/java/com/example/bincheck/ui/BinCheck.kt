@@ -1,6 +1,8 @@
 package com.example.bincheck.ui
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateDp
@@ -28,20 +30,29 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -56,6 +67,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -67,6 +79,11 @@ import androidx.compose.ui.unit.sp
 import com.example.bincheck.viewmodel.BinCheckVM
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bincheck.R
+import com.example.bincheck.viewmodel.UIState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
@@ -74,34 +91,21 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     var inputFieldState by remember {
         mutableStateOf("")
     }
-    var shoBinInfo by remember {
-        mutableStateOf(false)
-    }
+    val transition = updateTransition(
+        targetState = uiState.value!!.showContent,
+        label = "global animation"
+    )
 
-    val transition = updateTransition(targetState = shoBinInfo, label = "global animation")
+    val localFocus = LocalFocusManager.current
 
+    val backgroundSurfaceColor = Color(0xFFFFFFFF)
+    val titleColor = Color(0xFF36454F)
     val startColorGradient1 = Color(0xFFDCDCDD)
     val startColorGradient2 = Color(0xFFC5C3C6)
     val startColorGradient3 = Color(0xFF899097)
     val startColorGradient4 =  Color(0xFF4C5C68)
-
     val altColorGradient11 = Color(0xFF737DFE)
     val altColorGradient22 = Color(0xFFFFCAC9)
-    /*
-        val altColorGradient11 = Color(0xFFC6FFDD)
-    val altColorGradient22 = Color(0xFFFBD7B6)
-    val altColorGradient33 = Color(0xFFF7797D)
-     */
-
-    /*
-     val altColorGradient11 = Color(0xFF233A4E)
-    val altColorGradient22 = Color(0xFF9C6DB0)
-     */
-
-    /*
-    val altColorGradient11 = Color(0xFF737DFE)
-    val altColorGradient22 = Color(0xFFFFCAC9)
-     */
 
     val customEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
     val gradientDuration = 2000
@@ -133,7 +137,12 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     }
     val elevationState by transition.animateDp(
         label = "",
-        transitionSpec = { tween(delayMillis = 1600,durationMillis = 800, easing = customEasing) }
+        transitionSpec = {
+            when {
+                false isTransitioningTo true -> tween(delayMillis = 1600,durationMillis = 800, easing = customEasing)
+                else -> tween(delayMillis = 500,durationMillis = 800, easing = customEasing)
+            }
+        }
     ) { state ->
         if (!state) 0.dp else 30.dp
     }
@@ -149,9 +158,10 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
     ) { state ->
         if (!state) 1f else 0f
     }
+
     val compositionGradient by remember {
         derivedStateOf {
-            if (shoBinInfo) {
+            if (uiState.value!!.showContent) {
                 Brush.linearGradient(
                     colors = listOf(
                         stateColorGradient1,
@@ -171,10 +181,25 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
         }
     }
 
+    val onInputValueChange = { inputValue: String ->
+        inputFieldState = inputValue
+            .filter { it.isDigit() }
+            .take(8)
+    }
 
-    val onInputValueChange = { inputValue: String -> inputFieldState = inputValue}
-    val backgroundSurfaceColor = Color(0xFFFFFFFF)
-    val titleColor = Color(0xFF36454F)
+    val onDone = {
+        viewModel.getBinInfo(inputFieldState)
+    }
+    val clearUI = {
+
+        viewModel.clearUI()
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(800)
+            localFocus.moveFocus(FocusDirection.Down)
+            Unit
+        }
+        inputFieldState = ""
+    }
 
     Surface(
         modifier = Modifier
@@ -186,17 +211,19 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                .fillMaxSize()
        ) {
            Title(
-               alphaState = alphaTitleState,
+               alpha = alphaTitleState,
                color = titleColor,
                modifier = Modifier.align(Alignment.TopStart)
            )
 
            CardSurface(
+               displayBinDetail = uiState.value!!.showContent,
                brush = compositionGradient,
-               elevationState = elevationState,
+               elevation = elevationState,
                inputFieldState = inputFieldState,
-               offsetState = offsetCardSurfaceState,
-               onDone = { shoBinInfo = !shoBinInfo},
+               offset = offsetCardSurfaceState,
+               onDone = onDone,
+               onClearButtonClick = clearUI,
                onInputValueChange = onInputValueChange,
                modifier = Modifier
                    .align(Alignment.Center)
@@ -204,7 +231,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
 
            transition.AnimatedVisibility(
                modifier = Modifier
-                   .align(Alignment.BottomCenter)
+                   .align(Alignment.TopCenter)
                ,
                visible = { it },
                enter = slideInVertically(
@@ -219,7 +246,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                        durationMillis = 500,
                        easing = customEasing
                    ),
-               ), // Плавное появление
+               ),
                exit = slideOutVertically(
                    animationSpec = tween(
                        durationMillis = 500,
@@ -231,9 +258,9 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
                        durationMillis = 500,
                        easing = customEasing
                    ),
-               ) // Плавное исчезновение
+               )
            ) {
-               InfoDetailSurface()
+               InfoDetailSurface(state = uiState.value!!)
            }
        }
     }
@@ -242,7 +269,7 @@ fun BinCheckScreen(viewModel: BinCheckVM = hiltViewModel()) {
 
 @Composable
 fun Title(
-    alphaState: Float,
+    alpha: Float,
     color: Color,
     modifier: Modifier
 ) {
@@ -278,33 +305,38 @@ fun Title(
             .padding(top = 97.dp, start = 20.dp, end = 20.dp)
             .then(modifier)
             .graphicsLayer {
-                alpha = alphaState
+                this.alpha = alpha
             }
     )
 }
 
 @Composable
 fun CardSurface(
+    displayBinDetail: Boolean,
     brush: Brush,
-    elevationState: Dp,
+    elevation: Dp,
     inputFieldState: String,
-    offsetState: Float,
+    offset: Float,
     onInputValueChange: (String) -> Unit,
     onDone: () -> Unit,
+    onClearButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var downloadIndicatorIsVisible by remember {
         mutableStateOf(false)
     }
+
+    val onDisplayBinDetailChange = { downloadIndicatorIsVisible = !downloadIndicatorIsVisible }
+
     Surface(
         shape = RoundedCornerShape(12.dp),
-        shadowElevation = elevationState,
+        shadowElevation = elevation,
         modifier = Modifier
             .then(modifier)
             .height(230.dp)
             .fillMaxWidth()
             .padding(start = 20.dp, end = 20.dp,)
-            .offset(y = -(offsetState).dp)
+            .offset(y = -(offset).dp)
     ) {
         Box(
             modifier = Modifier
@@ -322,19 +354,63 @@ fun CardSurface(
                     .align(Alignment.CenterStart)
             )
 
-            InputFieldCardSurface(
-                state = inputFieldState,
-                onValueChange = onInputValueChange,
-                onDone = {
-                    downloadIndicatorIsVisible = !downloadIndicatorIsVisible
-                    onDone()
-                },
+
+            Crossfade(
+                targetState = displayBinDetail,
                 modifier = Modifier
-                    .padding(start = 10.dp, top = 55.dp)
-                    .align(Alignment.CenterStart)
-            )
+                    .padding(start = 20.dp, top = 110.dp)
+                    .align(Alignment.CenterStart),
+                animationSpec = tween(durationMillis = 150, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)),
+                label = "",
+
+            ) {
+                if (it) {
+                    DisabledTextField(
+                        bin = inputFieldState,
+                        onClearButtonClick = onClearButtonClick
+                    )
+                    /*
+                     CardInputField(
+                        enabled = enabledTextField,
+                        state = inputFieldState,
+                        displayBinDetail = displayBinDetail,
+                        onDisplayBinDetailChange = {  },
+                        onValueChange = onInputValueChange,
+                        onDone = onDone,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    Log.e("I'm active", "")
+                                    onClearButtonClick()
+                                    enabledTextField = !enabledTextField
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Очистить текст"
+                                )
+                            }
+                        },
+                        modifier = Modifier
+
+                    )
+                     */
+                } else {
+                    CardInputField(
+                        state = inputFieldState,
+                        displayBinDetail = displayBinDetail,
+                        onDisplayBinDetailChange = onDisplayBinDetailChange,
+                        onValueChange = onInputValueChange,
+                        onDone = {
+                            onDone()
+                        },
+                        modifier = Modifier
+                    )
+                }
+            }
 
             if (downloadIndicatorIsVisible) {
+                Log.e("downloadIndicatorIsVisible", "$downloadIndicatorIsVisible")
                 LinearProgressIndicator(
                     color = Color(0xFF7096D1),
                     trackColor = Color(0xFFBAD6EB),
@@ -349,13 +425,27 @@ fun CardSurface(
 }
 
 @Composable
-fun InputFieldCardSurface(
+fun CardInputField(
     state: String,
+    displayBinDetail: Boolean,
+    onDisplayBinDetailChange: () -> Unit,
     onValueChange: (String) -> Unit,
     onDone: () -> Unit,
+    trailingIcon: @Composable() (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    var errorState by remember {
+        mutableStateOf(false)
+    }
+
     val localFocus = LocalFocusManager.current
+    Log.e("displayBinDetail", "$displayBinDetail")
+    LaunchedEffect(key1 = displayBinDetail) {
+        if (displayBinDetail) {
+            Log.e("From launched", "$displayBinDetail")
+            onDisplayBinDetailChange()
+        }
+    }
 
     Row(
         modifier = modifier
@@ -363,6 +453,7 @@ fun InputFieldCardSurface(
     ) {
         OutlinedTextField(
             value = state,
+            isError = errorState,
             onValueChange = { onValueChange(it) },
             singleLine = true,
             textStyle = TextStyle(
@@ -370,11 +461,20 @@ fun InputFieldCardSurface(
                 fontSize = 18.sp,
                 fontFamily = FontFamily(Font(R.font.ocrabeckerrus_lat))
             ),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    localFocus.clearFocus()
-                    onDone()
+                    if (state.length == 6 || state.length == 8) {
+                        errorState = false
+                        localFocus.clearFocus()
+                        onDone()
+                        onDisplayBinDetailChange()
+                    } else {
+                        errorState = true
+                    }
                 }
             ),
             colors = TextFieldDefaults.colors(
@@ -382,8 +482,10 @@ fun InputFieldCardSurface(
                 unfocusedContainerColor = Color.White.copy(0.0f),
                 focusedIndicatorColor = Color(0xFF36454F),
                 unfocusedIndicatorColor = Color(0xFF899097),
-                cursorColor = Color(0xFF4C5C68)
+                cursorColor = Color(0xFF4C5C68),
+                disabledContainerColor = Color.White.copy(0f),
             ),
+           trailingIcon = trailingIcon,
             modifier = Modifier
                 .width(110.dp)//110
                 .height(56.dp),
@@ -424,11 +526,12 @@ fun InputFieldCardSurface(
 
 @Composable
 fun InfoDetailSurface(
+    state: UIState,
     modifier: Modifier = Modifier
 ) {
     val fontFamily = FontFamily(Font(R.font.inter_18pt_regular))
-    val headFontSize = 21.sp
-    val contentFontSize = 19.sp
+    val headFontSize = 19
+    val contentFontSize = 17
     val headColor = Color(0xFF36454F)
     val contentColor = Color(0xFF4C5C68)
 
@@ -438,15 +541,51 @@ fun InfoDetailSurface(
         color = Color(0xFFEEEEEE),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 275.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 260.dp)
             .then(modifier)
-
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,//Arrangement.spacedBy(40.dp, Alignment.CenterHorizontally) ,
             modifier = Modifier
                 .padding(horizontal = 25.dp, vertical = 15.dp)
         ) {
+            if (state.showContent) {
+                val stringDataSize = state.stringData!!.keys.size
+                val categoricalDataSize = state.categoricalData!!.keys.size
+                Column(modifier.weight(0.6f)) {
+                    state.stringData.keys.forEachIndexed { index, s ->
+                        StringTextField(
+                            header = s,
+                            value = state.stringData[s]!!,
+                            index = index,
+                            numField = stringDataSize,
+                            headFontSize = headFontSize,
+                            contentFontSize = contentFontSize,
+                            headFontColor = headColor,
+                            contentFontColor = contentColor,
+                            fontFamily = fontFamily
+                        )
+                    }
+                }
+                Column(modifier.weight(0.4f)) {
+                    state.categoricalData.keys.forEachIndexed { index, s ->
+                        CategoricalTextField(
+                            header = s,
+                            targetValue = state.categoricalData[s]!!.targetValue,
+                            othersValue = state.categoricalData[s]!!.otherValue,
+                            index = index,
+                            numCategory = categoricalDataSize,
+                            headFontSize = headFontSize,
+                            contentFontSize = contentFontSize,
+                            headFontColor = headColor,
+                            contentFontColor = contentColor,
+                            fontFamily = fontFamily
+                        )
+                    }
+                }
+            }
+
+          /*
             val contentForBinaryType = listOf(
                 buildAnnotatedString {
                     append("Debit / ")
@@ -529,10 +668,173 @@ fun InfoDetailSurface(
                     }
                 }
             }
+           */
         }
     }
 }
 
+@Composable
+fun CategoricalTextField(
+    header: String,
+    targetValue: String,
+    othersValue: List<String>,
+    index: Int,
+    numCategory: Int,
+    headFontSize: Int,
+    contentFontSize:Int,
+    headFontColor: Color,
+    contentFontColor: Color,
+    fontFamily: FontFamily,
+    textStyle: TextStyle = LocalTextStyle.current
+) {
+    val text = buildAnnotatedString {
+        withStyle(
+            SpanStyle(
+                fontWeight = FontWeight.ExtraBold
+            )
+        ) {
+            append(targetValue)
+        }
+        repeat(othersValue.size) {
+            append(" / ")
+            append(othersValue[it])
+        }
+    }
+    Column(
+        modifier = Modifier.padding(
+            bottom = if (index != numCategory - 1) 15.dp else 0.dp
+        )
+    ) {
+        Text(
+            text = header,
+            fontSize = headFontSize.sp,
+            color = headFontColor,
+            fontFamily = fontFamily,
+            style = TextStyle(
+                textIndent = TextIndent(firstLine = 0.sp, restLine = 0.sp)
+            ),
+            modifier = Modifier.padding(
+                bottom = 10.dp,
+            )
+        )
+
+        Text(
+            text = text,
+            fontSize = contentFontSize.sp,
+            style = TextStyle(
+                textIndent = TextIndent(firstLine = 0.sp, restLine = 0.sp)
+            ),
+            color = contentFontColor,
+            fontFamily = fontFamily
+        )
+    }
+}
+
+@Composable
+fun StringTextField(
+    header: String,
+    value: String,
+    index: Int,
+    numField: Int,
+    headFontSize: Int,
+    contentFontSize:Int,
+    headFontColor: Color,
+    contentFontColor: Color,
+    fontFamily: FontFamily
+) {
+    Column(
+        modifier = Modifier.padding(
+            bottom = if (index != numField - 1) 15.dp else 0.dp
+        )
+    ) {
+        Text(
+            text = header,
+            fontSize = headFontSize.sp,
+            color = headFontColor,
+            fontFamily = fontFamily,
+            modifier = Modifier.padding(
+                bottom = 10.dp,
+            )
+        )
+
+        Text(
+            text = value,
+            fontSize = contentFontSize.sp,
+            color = contentFontColor,
+            fontFamily = fontFamily
+        )
+    }
+}
+
+
+@Composable
+fun DisabledTextField(
+    bin: String = "427630",
+    onClearButtonClick: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = bin.take(4),
+            fontSize = 18.sp,
+            color = Color(0xFFDCDCDD),
+            fontFamily = FontFamily(Font(R.font.ocrabeckerrus_lat)),
+            style = TextStyle(
+                //baselineShift = BaselineShift(-1.3f),
+                textIndent = TextIndent(firstLine = 0.sp)
+            )
+        )
+        if (bin.length == 6) {
+            Text(
+                text = "${bin.subSequence(4, 6)}XX",
+                fontSize = 18.sp,
+                color = Color(0xFFDCDCDD),
+                fontFamily = FontFamily(Font(R.font.ocrabeckerrus_lat)),
+                style = TextStyle(
+                    //baselineShift = BaselineShift(-1.3f),
+                    textIndent = TextIndent(firstLine = 25.sp)
+                )
+            )
+
+        } else if( bin.length > 6) {
+            Text(
+                text = "${bin.subSequence(4, 8)}",
+                fontSize = 18.sp,
+                color = Color(0xFFDCDCDD),
+                fontFamily = FontFamily(Font(R.font.ocrabeckerrus_lat)),
+                style = TextStyle(
+                    //baselineShift = BaselineShift(-1.3f),
+                    textIndent = TextIndent(firstLine = 25.sp)
+                )
+            )
+        }
+
+        IconButton(
+            onClick = { onClearButtonClick() },
+            modifier = Modifier
+                .padding(start = 5.dp, bottom = 1.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Cancel,
+                contentDescription = "Очистить текст",
+                tint = Color(0xFF36454F)
+            )
+        }
+
+        repeat(2) {
+            Text(
+                text = "XXXX",
+                fontSize = 18.sp,
+                color = Color(0xFFDCDCDD),
+                fontFamily = FontFamily(Font(R.font.ocrabeckerrus_lat)),
+                style = TextStyle(
+                    //baselineShift = BaselineShift(-1.3f),
+                    textIndent = TextIndent(firstLine = 25.sp)
+                )
+            )
+        }
+
+    }
+}
 
 /*
 Удачная рандом палетка

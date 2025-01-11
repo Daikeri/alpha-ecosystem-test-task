@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation ("androidx.compose.ui:ui-text")
+    implementation(kotlin("reflect"))
 
 }
 
