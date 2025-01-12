@@ -33,6 +33,12 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
 }
 
 dependencies {
@@ -56,5 +62,6 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation ("androidx.compose.ui:ui-text")
     implementation(project(":data:cashe"))
+    implementation("androidx.compose.ui:ui-tooling-preview")
 
 }

@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newCoroutineContext
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -91,10 +92,14 @@ class BinCheckVM @Inject constructor(
                     categoricalData = categoricalHeader.zip(categoricalValue).toMap().filterValues { it != null }
                 )
 
+                val currentDateTime = LocalDateTime.now()
+                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
+                val formattedDateTime = currentDateTime.format(formatter)
+
                 saveBin(
                     BinCache(
                         bin = bin,
-                        time = LocalTime.now().toString().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
+                        time = formattedDateTime,
                         paymentSystem = networkResult.paymentSystem,
                         brand = networkResult.brand,
                         countryName = networkResult.country.name,

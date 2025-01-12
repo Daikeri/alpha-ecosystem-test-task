@@ -15,14 +15,38 @@ class BinListVM @Inject constructor(
     val binCacheRepos: BinCacheRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<List<BinCache>?>(null)
-    val uiState: StateFlow<List<BinCache>?> = _uiState
+    private val _uiState = MutableStateFlow<UIState>(UIState())
+    val uiState: StateFlow<UIState> = _uiState
 
     init {
         viewModelScope.launch {
-            binCacheRepos.getAllBinCaches().collect {
-                _uiState.value = it
+            binCacheRepos.getAllBinCaches()
+                .collect {cache ->
+                    _uiState.value = UIState(
+                        content = cache.map { fullBin ->
+                            ShortBin(
+                                id = fullBin.id,
+                                bin = fullBin.bin,
+                                time = fullBin.time,
+                                bankName = fullBin.bankName,
+                                paymentSystem = fullBin.paymentSystem,
+                                countryName = fullBin.countryName
+                            )
+                        }
+                    )
             }
         }
     }
 }
+
+data class UIState(
+    val content: List<ShortBin>? = null
+)
+data class ShortBin(
+    val id: Int,
+    val bin: String,
+    val time: String,
+    val bankName: String?,
+    val paymentSystem: String?,
+    val countryName: String?
+)
