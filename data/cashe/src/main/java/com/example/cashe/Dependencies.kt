@@ -49,7 +49,7 @@ interface BinCacheDao {
     suspend fun deleteBinCache(binCache: BinCache)
 }
 
-@Database(entities = [BinCache::class], version = 2) // Обновлена версия базы данных
+@Database(entities = [BinCache::class], version = 3) // Обновлена версия базы данных
 abstract class AppDatabase : RoomDatabase() {
     abstract fun binCacheDao(): BinCacheDao
 }
