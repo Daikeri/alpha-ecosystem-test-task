@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bincheck.ui.BinCheckScreen
+import com.example.binlist.ui.BinListScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,11 +23,13 @@ fun ApplicationNavigationGraph() {
         startDestination = CheckBin
     ) {
         composable<CheckBin> {
-            BinCheckScreen()
+            BinCheckScreen(
+                onHistoryButtonClick = { navController.navigate(RequestHistory) }
+            )
         }
 
         composable<RequestHistory> {
-
+            BinListScreen()
         }
     }
 }

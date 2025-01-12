@@ -39,7 +39,7 @@ class BinInfoModule {
         @ApplicationContext applicationContext: Context,
         gson: Gson
     ): BinlistApi {
-        val hostSource = "https://lookup.binlist.net"
+        val hostSource = "https://405d9e2d-6e85-4785-8d94-000ae9d81a0e.mock.pstmn.io"//"https://lookup.binlist.net"
         val retrofitBuilder = Retrofit
             .Builder()
             .baseUrl(hostSource)
@@ -55,24 +55,24 @@ interface BinlistApi {
 }
 
 data class BinlistResponse(
-    @SerializedName("scheme") val paymentSystem: String,
-    @SerializedName("type") val cardType: String,
-    @SerializedName("brand") val brand: String,
-    @SerializedName("prepaid") val isPrepaidCard: Boolean,
+    @SerializedName("scheme") val paymentSystem: String?,
+    @SerializedName("type") val cardType: String?,
+    @SerializedName("prepaid") val isPrepaidCard: Boolean?,
+    val brand: String?,
     val country: CountryInfo,
     val bank: BankInfo
 )
 
 data class CountryInfo(
-    val name: String,
-    val latitude: String,
-    val longitude: String
+    val name: String?,
+    val latitude: String?,
+    val longitude: String?
 )
 
 data class BankInfo(
-    val name: String,
-    val url: String,
-    val phone: String,
-    val city: String
+    val name: String?,
+    val url: String?,
+    val phone: String?,
+    val city: String?
 )
 
