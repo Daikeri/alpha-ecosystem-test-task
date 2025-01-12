@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package com.example.cashe;
+option java_package = "com.example.cashe";
+option java_multiple_files = true;
+// Определение объекта для хранения BIN данных
+message BinCache {
+  string bin = 1;        // BIN (строка)
+  int32 id = 2;          // Уникальный идентификатор
+  string time = 3;       // Время в текстовом формате
+}
