@@ -39,7 +39,7 @@ class BinInfoModule {
         @ApplicationContext applicationContext: Context,
         gson: Gson
     ): BinlistApi {
-        val hostSource = "https://405d9e2d-6e85-4785-8d94-000ae9d81a0e.mock.pstmn.io"//"https://lookup.binlist.net"
+        val hostSource = "https://lookup.binlist.net"
         val retrofitBuilder = Retrofit
             .Builder()
             .baseUrl(hostSource)
