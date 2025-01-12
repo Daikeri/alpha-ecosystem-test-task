@@ -41,7 +41,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -57,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -101,11 +106,12 @@ fun BinCheckScreen(
     var inputFieldState by rememberSaveable {
         mutableStateOf("")
     }
-    Log.e("InputState", inputFieldState)
+    Log.e("InputState", uiState.toString())
     val transition = updateTransition(
         targetState = uiState.value!!.showContent,
         label = "global animation"
     )
+    val snackBarState = remember { SnackbarHostState() }
 
     val localFocus = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -212,21 +218,36 @@ fun BinCheckScreen(
         inputFieldState = ""
     }
 
+    LaunchedEffect(key1 = uiState.value!!.showError) {
+        if (uiState.value!!.showError) {
+            Log.e( "From LaunchedEffect", "${uiState.value!!.showError}")
+            snackBarState.showSnackbar(message = uiState.value!!.errorMessage)
+        }
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize(),
         color = backgroundSurfaceColor
     ) {
+        CustomSnackBar(
+            snackBarState = snackBarState,
+            //modifier = Modifier.align(Alignment.TopCenter)
+        )
        Box(
            modifier = Modifier
                .fillMaxSize()
        ) {
+
            transition.AnimatedVisibility(
                visible = { !it },
                modifier = Modifier
                    .padding(end = 10.dp, top = 5.dp)
                    .align(Alignment.TopEnd)
            ) {
+               
+
+               
                IconButton(onClick = {
                    keyboardController?.hide()
                    onHistoryButtonClick()
@@ -765,51 +786,33 @@ fun DisabledTextField(
     }
 }
 
-/*
-Удачная рандом палетка
-Color(0xFF373B4D), // Темный серо-синий
-Color(0xFF949597), // Серый
-Color(0xFFBDBFB7), // Оливково-серый
-*/
-
-
-/*
-11. Slate Gray Color Palette
-Color(0xFF576575),
-Color(0xFF708090),
-Color(0xFF9AA4BA),
-Color(0xFFAFB6CF),
-Color(0xFFC3C8E3),
- */
-
-/*
-27. Ash Gray Color Palette
-Color(0xFFE8EEEA),
-Color(0xFFCDD6D0),
-Color(0xFFB2BEB5),
-Color(0xFF6D756F),
-Color(0xFF282C29),
- */
-
-/*
-Итоговая палитра
-20. Charcoal Gray Color Palette
-#36454F, #4C5C68, #899097, #C5C3C6, #DCDCDD
-Color(0xFF36454F),
-Color(0xFF4C5C68),
-Color(0xFF899097),
-Color(0xFFC5C3C6),
-Color(0xFFDCDCDD),
- */
-
-/*
-val cardSurfaceColor = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFDCDCDD),
-            Color(0xFFC5C3C6),
-            Color(0xFF899097),
-            Color(0xFF4C5C68),
-        )
-    )
- */
-
+@Composable
+fun CustomSnackBar(
+    snackBarState: SnackbarHostState,
+    modifier: Modifier = Modifier
+) {
+    SnackbarHost(
+        hostState = snackBarState,
+        modifier = Modifier.then(modifier)
+    ) {
+        Snackbar(
+            actionOnNewLine = true,
+            containerColor = Color(0xFF93000A),
+            contentColor = Color(0xFFFFDAD6),
+            modifier = Modifier
+                .padding(8.dp)
+                .width(250.dp)
+                .clip(RoundedCornerShape(12.dp))
+        ) {
+            snackBarState.currentSnackbarData?.visuals?.let { it1 ->
+                Text(
+                    modifier  = modifier.fillMaxWidth(),
+                    text = it1.message,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Justify,
+                    fontFamily = FontFamily(Font(R.font.inter_18pt_bold))
+                )
+            }
+        }
+    }
+}

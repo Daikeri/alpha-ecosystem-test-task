@@ -1,5 +1,6 @@
 package com.example.bincheck.viewmodel
 
+import android.net.http.HttpException
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -13,10 +14,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newCoroutineContext
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import javax.net.ssl.SSLException
 
 @HiltViewModel
 class BinCheckVM @Inject constructor(
@@ -115,12 +121,56 @@ class BinCheckVM @Inject constructor(
                 )
 
             } catch (e: Exception) {
-                _uiState.value = UIState(
-                    showError = true,
-                    errorMessage = e.message.toString(),
-                    stringData = null,
-                    categoricalData = null
-                )
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Ошибка: Превышено время ожидания ответа",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                    is ConnectException -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Ошибка: Не удалось подключиться к серверу",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                    is UnknownHostException -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Ошибка: Сервер не найден",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                    is SSLException -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Ошибка: Проблема с SSL-соединением",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                    is IOException -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Ошибка: Проблемы с сетью",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                    else -> {
+                        _uiState.value = UIState(
+                            showError = true,
+                            errorMessage = "Неизвестная ошибка",
+                            categoricalData = null,
+                            stringData = null
+                        )
+                    }
+                }
             }
         }
     }
