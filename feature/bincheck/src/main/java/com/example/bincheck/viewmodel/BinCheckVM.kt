@@ -1,25 +1,30 @@
 package com.example.bincheck.viewmodel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bininfo.BankInfo
 import com.example.bininfo.BinInfoRepository
-import com.example.bininfo.BinlistResponse
-import com.example.bininfo.CountryInfo
+import com.example.cashe.BinCache
+import com.example.cashe.BinCacheRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newCoroutineContext
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class BinCheckVM @Inject constructor(
-    val binInfoRepos: BinInfoRepository
+    val binInfoRepos: BinInfoRepository,
+    val cacheRepos: BinCacheRepository
 ): ViewModel() {
     private val _uiState = MutableLiveData(UIState(stringData = null, categoricalData = null))
     val uiState = _uiState
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getBinInfo(bin: String) {
         viewModelScope.launch {
             try {
@@ -85,6 +90,25 @@ class BinCheckVM @Inject constructor(
                     stringData = stringValueHeader.zip(stringValue).toMap().filterValues { it != null },
                     categoricalData = categoricalHeader.zip(categoricalValue).toMap().filterValues { it != null }
                 )
+
+                saveBin(
+                    BinCache(
+                        bin = bin,
+                        time = LocalTime.now().toString().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")),
+                        paymentSystem = networkResult.paymentSystem,
+                        brand = networkResult.brand,
+                        countryName = networkResult.country.name,
+                        countryLatitude = networkResult.country.latitude,
+                        countryLongitude =networkResult.country.longitude,
+                        bankName = networkResult.bank.name,
+                        bankUrl = networkResult.bank.url,
+                        bankPhone = networkResult.bank.phone,
+                        bankCity = networkResult.bank.city,
+                        cardTypeCategory = networkResult.cardType,
+                        isPrepaidCategory = networkResult.isPrepaidCard
+                    )
+                )
+
             } catch (e: Exception) {
                 _uiState.value = UIState(
                     showError = true,
@@ -94,6 +118,13 @@ class BinCheckVM @Inject constructor(
                 )
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun saveBin(bin: BinCache) {
+       viewModelScope.launch(Dispatchers.IO) {
+           cacheRepos.addBinCache(bin)
+       }
     }
 
     fun clearUI() {
@@ -128,37 +159,3 @@ data class CategoricalValue(
     val targetValue: String,
     val otherValue: List<String>
 )
-
-/*
-data class UIState(
-    val showError: Boolean = false,
-    val errorMessage: String = "",
-    val paymentSystem: String? = null,
-    val cardType: String? = null,
-    val isPrepaidCard: Boolean? = null,
-    val brand: String? = null,
-    val countryName: String? = null,
-    val countryLatitude: String? = null,
-    val countryLongitude: String? = null,
-    val bankName: String? = null,
-    val bankUrl: String? = null,
-    val bankPhone: String? = null,
-    val bankCity: String? = null
-)
-*/
-
-/*
- _uiState.value = UIState(
-                    paymentSystem = networkResult.paymentSystem,
-                    cardType = networkResult.cardType,
-                    isPrepaidCard = networkResult.isPrepaidCard,
-                    brand = networkResult.brand,
-                    countryName = networkResult.country.name,
-                    countryLatitude = networkResult.country.latitude,
-                    countryLongitude = networkResult.country.longitude,
-                    bankName = networkResult.bank.name,
-                    bankUrl = networkResult.bank.url,
-                    bankPhone = networkResult.bank.phone,
-                    bankCity = networkResult.bank.url
-                )
- */

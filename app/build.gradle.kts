@@ -60,7 +60,6 @@ dependencies {
     kapt(libs.hilt.android.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(project(":feature:bincheck"))
-    implementation(project(":data:cashe"))
 }
 
 kapt {

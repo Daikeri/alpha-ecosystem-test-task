@@ -1,6 +1,8 @@
 package com.example.bincheck.ui
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColor
@@ -369,32 +371,6 @@ fun CardSurface(
                         bin = inputFieldState,
                         onClearButtonClick = onClearButtonClick
                     )
-                    /*
-                     CardInputField(
-                        enabled = enabledTextField,
-                        state = inputFieldState,
-                        displayBinDetail = displayBinDetail,
-                        onDisplayBinDetailChange = {  },
-                        onValueChange = onInputValueChange,
-                        onDone = onDone,
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    Log.e("I'm active", "")
-                                    onClearButtonClick()
-                                    enabledTextField = !enabledTextField
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Очистить текст"
-                                )
-                            }
-                        },
-                        modifier = Modifier
-
-                    )
-                     */
                 } else {
                     CardInputField(
                         state = inputFieldState,
@@ -410,7 +386,6 @@ fun CardSurface(
             }
 
             if (downloadIndicatorIsVisible) {
-                Log.e("downloadIndicatorIsVisible", "$downloadIndicatorIsVisible")
                 LinearProgressIndicator(
                     color = Color(0xFF7096D1),
                     trackColor = Color(0xFFBAD6EB),
@@ -584,91 +559,6 @@ fun InfoDetailSurface(
                     }
                 }
             }
-
-          /*
-            val contentForBinaryType = listOf(
-                buildAnnotatedString {
-                    append("Debit / ")
-                    withStyle(
-                        SpanStyle(
-                            fontWeight = FontWeight.Bold
-                        )
-                    ) {
-                        append("Credit")
-                    }
-                },
-                buildAnnotatedString {
-                    append("Yes / ")
-                    withStyle(
-                        SpanStyle(
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    ) {
-                        append("No")
-                    }
-                },
-            )
-            val headMono = listOf(
-                "Scheme / network",
-                "Brand",
-                "Country",
-                "Bank"
-            )
-            val headBinary = listOf(
-                "Type",
-                "Prepaid",
-            )
-            Column {
-                headMono.forEachIndexed { index, s ->
-                    Column(
-                        modifier.padding(
-                            bottom = if (index != headMono.size-1 ) 15.dp else 0.dp
-                        )
-                    ) {
-                        Text(
-                            text = s,
-                            fontSize = headFontSize,
-                            color = headColor,
-                            fontFamily = fontFamily,
-                            modifier = Modifier.padding(
-                                bottom = 10.dp,
-                            )
-                        )
-                        Text(
-                            text = "Some content",
-                            fontSize = contentFontSize,
-                            color = contentColor,
-                            fontFamily = fontFamily
-                        )
-                    }
-                }
-            }
-            Column {
-                headBinary.forEachIndexed { index, s ->
-                    Column(
-                        modifier.padding(
-                            bottom = if (index != headBinary.size-1 ) 15.dp else 0.dp
-                        )
-                    ) {
-                        Text(
-                            text = s,
-                            fontSize = headFontSize,
-                            color = headColor,
-                            fontFamily = fontFamily,
-                            modifier = Modifier.padding(
-                                bottom = 10.dp,
-                            )
-                        )
-                        Text(
-                            text = contentForBinaryType[index],
-                            fontSize = contentFontSize,
-                            color = contentColor,
-                            fontFamily = fontFamily
-                        )
-                    }
-                }
-            }
-           */
         }
     }
 }
@@ -685,7 +575,6 @@ fun CategoricalTextField(
     headFontColor: Color,
     contentFontColor: Color,
     fontFamily: FontFamily,
-    textStyle: TextStyle = LocalTextStyle.current
 ) {
     val text = buildAnnotatedString {
         withStyle(

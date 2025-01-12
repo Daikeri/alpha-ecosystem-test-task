@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.bincheck"
+    namespace = "com.example.binlist"
     compileSdk = 34
 
     defaultConfig {
@@ -33,12 +33,6 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
 }
 
 dependencies {
@@ -59,16 +53,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
-    implementation(project(":data:bininfo"))
-    implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation ("androidx.compose.ui:ui-text")
-    implementation(kotlin("reflect"))
     implementation(project(":data:cashe"))
 
-}
-
-kapt {
-    correctErrorTypes = true
 }

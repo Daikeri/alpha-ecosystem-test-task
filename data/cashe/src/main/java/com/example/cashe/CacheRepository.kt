@@ -1,11 +1,12 @@
 package com.example.cashe
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BinCacheRepository @Inject constructor(
-    private val dao: BinCacheDao
+    val dao: BinCacheDao
 ) {
 
     // Получение всех объектов BinCache
@@ -15,6 +16,7 @@ class BinCacheRepository @Inject constructor(
 
     // Добавление нового объекта BinCache
     suspend fun addBinCache(binCache: BinCache) {
+        Log.e("add new bin", "$binCache")
         dao.insertBinCache(binCache)
     }
 

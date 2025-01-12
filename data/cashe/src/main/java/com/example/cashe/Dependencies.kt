@@ -23,7 +23,18 @@ import javax.inject.Singleton
 data class BinCache(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val bin: String,
-    val time: String
+    val time: String,
+    val paymentSystem: String? = null,
+    val brand: String? = null,
+    val countryName: String? = null,
+    val countryLatitude: String? = null,
+    val countryLongitude: String? = null,
+    val bankName: String? = null,
+    val bankUrl: String? = null,
+    val bankPhone: String? = null,
+    val bankCity: String? = null,
+    val cardTypeCategory: String? = null,
+    val isPrepaidCategory: Boolean? = null
 )
 
 @Dao
@@ -38,8 +49,7 @@ interface BinCacheDao {
     suspend fun deleteBinCache(binCache: BinCache)
 }
 
-
-@Database(entities = [BinCache::class], version = 1)
+@Database(entities = [BinCache::class], version = 2) // Обновлена версия базы данных
 abstract class AppDatabase : RoomDatabase() {
     abstract fun binCacheDao(): BinCacheDao
 }
@@ -51,7 +61,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "bin_cache_db").build()
+        return Room.databaseBuilder(context, AppDatabase::class.java, "bin_cache_db")
+            .fallbackToDestructiveMigration() // Это для упрощения миграций
+            .build()
     }
 
     @Provides
@@ -59,3 +71,4 @@ object DatabaseModule {
         return database.binCacheDao()
     }
 }
+
